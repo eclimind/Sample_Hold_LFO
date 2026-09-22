@@ -43,8 +43,8 @@
 namespace ProjectInfo
 {
     const char* const  projectName    = "Sample_Hold_LFO";
-    const char* const  companyName    = "";
-    const char* const  versionString  = "0.0.1";
-    const int          versionNumber  = 0x1;
+    const char* const  companyName    = "Elysian Audio";
+    const char* const  versionString  = "0.0.2";
+    const int          versionNumber  = 0x2;
 }
 #endif

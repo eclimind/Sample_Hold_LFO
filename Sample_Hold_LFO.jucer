@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="NBNLO0" name="Sample_Hold_LFO" projectType="audioplug" useAppConfig="0"
-              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" version="0.0.1"
-              pluginCharacteristicsValue="pluginIsMidiEffectPlugin,pluginWantsMidiIn"
-              pluginVST3Category="Modulation" pluginAAXCategory="32" companyWebsite="www.github.com/eclimind">
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" version="0.0.2"
+              pluginCharacteristicsValue="pluginWantsMidiIn" pluginVST3Category="Modulation"
+              pluginAAXCategory="32" companyWebsite="https://github.com/eclimind"
+              companyEmail="gzapple.official@gmail.com" companyName="Elysian Audio"
+              pluginManufacturerCode="gzpl" pluginCode="SHLF" pluginFormats="buildStandalone,buildVST,buildVST3">
   <MAINGROUP id="QU7Hfl" name="Sample_Hold_LFO">
     <GROUP id="{21A49529-24AD-48EF-DCD4-380B5727B58D}" name="Source">
       <FILE id="VpVIqT" name="PluginProcessor.cpp" compile="1" resource="0"

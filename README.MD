@@ -5,4 +5,11 @@ A juce based vst3 plugin that will create randomized sample and hold standalone 
 
 It will be similar to https://kilohearts.com/docs/modulation#sample_and_hold and https://kilohearts.com/docs/modulation#random with some differences
 
-It will have the option to be synced with host tempo or have a hz controller. It will also enable midi info to generate a new seed for the lfo
+It will have the option to be synced with host tempo or have a hz controller.
+On Time Sync: the lfo will restart into a new position everytime transport starts
+Note On: when a midi note gets inputed a new position to start
+Free: the lfo will free run and will not restart into a new position regardless of tempo or midi information
+
+It will also have a button to manually make a new seed
+
+Baseline for randomization will be 2 prng's with the first one to generate a very long 'random' sequence, and the second one will determine a starting position on the first prng to prevent multiple instances of the lfo to have the same "seed"

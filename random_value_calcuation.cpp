@@ -24,7 +24,8 @@ class mainprng{
     }
     
     */
-    private: int state;
+    private:
+        int state;
     public: 
         mainprng(int seed){
         state = (seed);

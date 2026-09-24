@@ -1,5 +1,6 @@
 TEMPORARY READ ME:
 
+
 Sample Hold LFO
 A juce based vst3 plugin that will create randomized sample and hold standalone lfo to route parameters by having a psuedo random number generator to create randomized values with the option of smoothly interpolate between values
 

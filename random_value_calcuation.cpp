@@ -14,13 +14,13 @@ using namespace std;
     this is to make sure multiple instances of the lfo can use the same initial prng while starting at different points in the sequence, so that they dont automatically use the same lfo pattern
     */
 
-class mainprng{/*
+class MainPRNG{/*
     this class is responsible for creating a long prng sequence
     this will be the main source for the lfo to gain its pseudo randomized values
     */
     private:
         int state;
-    public: mainprng(int seed){
+    public: MainPRNG(int seed){
         state = (seed);
     }
     int next(){
@@ -29,13 +29,13 @@ class mainprng{/*
     }
 };
 
-class startprng{
+class StartPRNG{
     /*
     this class is responsible for pseudorandomizing the start position for the mainprng
     */
     private:
         int state;
-    public: startprng(int seed){
+    public: StartPRNG(int seed){
         state = (seed);
     }
     int next(){
@@ -44,7 +44,10 @@ class startprng{
     }
 };
 
-void sequenceProcessor(vector<int>& sequence, startprng& startprng){
+void sequenceProcessor(vector<int>& sequence, StartPRNG& startprng){
+    /*
+    this method is responsible for sequencing the mainprng's values pseudorandomly
+    */
     int startpos = startprng.next();
     startpos = startpos % sequence.size(); // for displaying a chunk of the first prng
     auto display = 256;
@@ -55,28 +58,32 @@ void sequenceProcessor(vector<int>& sequence, startprng& startprng){
 
         int x = i;
         int y = lfo_val;
-        cout << x << "  " << y << endl;
+        graphDisplay(x,y);
     }
 }
+
+void graphDisplay(int x, int y){
+    cout<< x << ":" << y << endl;
+
+}
+
 
 int main(){
     /*
     main prng will generate multiple pseudo random values, with each of the values outputting into an array to save all of the states
     this array will have a fixed size. every random value will have its own index
     */
-    auto random_val = 0;
-    mainprng mainprng (2342);
+    auto random_val = 0; //initializes variable to assign the random values of mainprng
+    MainPRNG mainprng (2342);//generates mainprng seed
     vector<int> sequence(500);
 
     for(int i = 0;i<sequence.size();i++){
         random_val = mainprng.next();
         sequence[i] = (random_val);
     }
-    /*
-    second prng is responsible for choosing where to start in the sequence
-    */
-    startprng startprng(7325);
+    StartPRNG startprng(7325);
     sequenceProcessor(sequence, startprng);
+    graphDisplay();
 
     //keeps looping until the user decides to stop
     int j = 1;
@@ -86,6 +93,7 @@ int main(){
         cin >> userchoice;
         if(userchoice == "yes" || userchoice ==  "Yes"){
             sequenceProcessor(sequence, startprng);
+            graphDisplay();
         }
         if(userchoice == "no" || userchoice == "No"){
             return 0;

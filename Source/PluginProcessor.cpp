@@ -19,7 +19,9 @@ Sample_Hold_LFOAudioProcessor::Sample_Hold_LFOAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       )
+                       ),
+                    mainPRNG(12345),
+                    startPRNG(7325)
 #endif
 {
 }

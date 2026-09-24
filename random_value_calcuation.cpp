@@ -3,6 +3,7 @@
 #include <array>
 #include <vector>
 using namespace std;
+#include <math.h>
 
     /*
     idea for the random lfo gui:
@@ -43,6 +44,21 @@ class startprng{
     }
 };
 
+void sequenceProcessor(vector<int>& sequence, startprng& startprng){
+    int startpos = startprng.next();
+    startpos = startpos % sequence.size(); // for displaying a chunk of the first prng
+    auto display = 256;
+    for(int i=0;i<display;i++){
+        int displayIndex = (startpos + i) % static_cast<int>(sequence.size());
+        int lfo_val  = 0;
+        lfo_val = sequence[displayIndex];
+
+        int x = i;
+        int y = lfo_val;
+        cout << x << "  " << y << endl;
+    }
+}
+
 int main(){
     /*
     main prng will generate multiple pseudo random values, with each of the values outputting into an array to save all of the states
@@ -60,37 +76,16 @@ int main(){
     second prng is responsible for choosing where to start in the sequence
     */
     startprng startprng(7325);
-    int startpos = startprng.next();
-    startpos = startpos % sequence.size(); // for displaying a chunk of the first prng
-    auto display = 256;
-    for(int i=0;i<display;i++){
-        int displayIndex = (startpos + i) % static_cast<int>(sequence.size());
-        int lfo_val  = 0;
-        lfo_val = sequence[displayIndex];
-
-        int x = i;
-        int y = lfo_val;
-        cout << x << "  " << y << endl;
-    }
+    sequenceProcessor(sequence, startprng);
 
     //keeps looping until the user decides to stop
-
     int j = 1;
     while(true){
         std::string userchoice = " ";
         cout<<"Want to start a new start position?\n";
         cin >> userchoice;
         if(userchoice == "yes" || userchoice ==  "Yes"){
-            startpos = startprng.next();
-            startpos = startpos % sequence.size();
-            for(int i = 0;i< display;i++){
-                int displayIndex = (startpos + i) % static_cast<int>(sequence.size());
-                auto lfo_val = sequence[displayIndex];
-                int x = i;
-                int y = lfo_val;
-                cout << x << " : " << y << endl;
-
-        }
+            sequenceProcessor(sequence, startprng);
         }
         if(userchoice == "no" || userchoice == "No"){
             return 0;

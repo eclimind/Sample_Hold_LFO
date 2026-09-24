@@ -14,6 +14,7 @@ using namespace std;
     this is to make sure multiple instances of the lfo can use the same initial prng while starting at different points in the sequence, so that they dont automatically use the same lfo pattern
     */
 
+
 class MainPRNG{/*
     this class is responsible for creating a long prng sequence
     this will be the main source for the lfo to gain its pseudo randomized values
@@ -28,7 +29,6 @@ class MainPRNG{/*
         return state;
     }
 };
-
 class StartPRNG{
     /*
     this class is responsible for pseudorandomizing the start position for the mainprng
@@ -58,15 +58,9 @@ void sequenceProcessor(vector<int>& sequence, StartPRNG& startprng){
 
         int x = i;
         int y = lfo_val;
-        graphDisplay(x,y);
+        cout<< x << ":" << y << endl;
     }
 }
-
-void graphDisplay(int x, int y){
-    cout<< x << ":" << y << endl;
-
-}
-
 
 int main(){
     /*
@@ -74,7 +68,7 @@ int main(){
     this array will have a fixed size. every random value will have its own index
     */
     auto random_val = 0; //initializes variable to assign the random values of mainprng
-    MainPRNG mainprng (2342);//generates mainprng seed
+    MainPRNG mainprng (8354);//generates mainprng seed
     vector<int> sequence(500);
 
     for(int i = 0;i<sequence.size();i++){
@@ -83,7 +77,6 @@ int main(){
     }
     StartPRNG startprng(7325);
     sequenceProcessor(sequence, startprng);
-    graphDisplay();
 
     //keeps looping until the user decides to stop
     int j = 1;
@@ -93,7 +86,6 @@ int main(){
         cin >> userchoice;
         if(userchoice == "yes" || userchoice ==  "Yes"){
             sequenceProcessor(sequence, startprng);
-            graphDisplay();
         }
         if(userchoice == "no" || userchoice == "No"){
             return 0;

@@ -23,7 +23,7 @@ class mainprng{/*
         state = (seed);
     }
     int next(){
-        state = (((2462346* state) + 332456) % 257274);
+        state = (((38839* state) + 11186023687) % 200) - 100;
         return state;
     }
 };
@@ -62,7 +62,7 @@ int main(){
     startprng startprng(7325);
     int startpos = startprng.next();
     startpos = startpos % sequence.size(); // for displaying a chunk of the first prng
-    auto display = 100;
+    auto display = 256;
     for(int i=0;i<display;i++){
         int displayIndex = (startpos + i) % static_cast<int>(sequence.size());
         int lfo_val  = 0;

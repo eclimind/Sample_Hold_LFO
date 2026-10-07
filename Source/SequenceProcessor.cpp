@@ -6,11 +6,12 @@ using namespace std;
 #include <math.h>
 
 #include <PluginMath.h>
+#include <SequenceProcessor.h>
 
 void sequenceProcessor(const vector<int> sequence, StartPRNG& StartPRNG){
     /*
     this method is responsible for sequencing the mainprng's values pseudorandomly
-    */
+    */ 
     int startpos = StartPRNG.next();
     startpos = startpos % sequence.size(); // for displaying a chunk of the first prng
     auto display = 256;
@@ -21,5 +22,8 @@ void sequenceProcessor(const vector<int> sequence, StartPRNG& StartPRNG){
 
         int x = i;
         int y = lfo_val;
+
+        graphDisplay(x,y);          
     }
 }
+

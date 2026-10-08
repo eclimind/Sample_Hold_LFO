@@ -6,9 +6,7 @@ class MainPRNG{/*
     */
     private:
         int state;
-    public: MainPRNG(int seed){
-        state = (seed);
-    }
+    public: MainPRNG(int seed);
     int next();
 };
 
@@ -18,8 +16,6 @@ class StartPRNG{
     */
     private:
         int state;
-    public: StartPRNG(int seed){
-        state = (seed);
-    }
+    public: StartPRNG(int seed);
     int next();
 };

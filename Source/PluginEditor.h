@@ -20,6 +20,8 @@ public:
     Sample_Hold_LFOAudioProcessorEditor (Sample_Hold_LFOAudioProcessor&);
     ~Sample_Hold_LFOAudioProcessorEditor() override;
 
+    const std::vector<int>& getLfoValues() const;
+
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;

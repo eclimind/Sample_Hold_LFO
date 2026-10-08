@@ -1,11 +1,11 @@
-#include <PluginMath.h>
+#include "PluginMath.h"
 
 MainPRNG::MainPRNG(int seed){
     state = seed;
 }
 
 int MainPRNG::next(){
-    state = (((38839* state) + 11186023687) % 200) - 100;
+    state = (((2734566789528379345* state) + 23579) % 200) - 100;
     return state;
 
 }

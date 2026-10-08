@@ -20,14 +20,25 @@ Sample_Hold_LFOAudioProcessor::Sample_Hold_LFOAudioProcessor()
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
                        ),
-                    mainPRNG(12345),
+                    mainPRNG(2342),
                     startPRNG(7325)
 #endif
 {
+    sequence.resize(500);
+    for(int i = 0;i<sequence.size();i++){
+        sequence[i] = mainPRNG.next();
+    }
+
+    sequenceProcessor(sequence,startPRNG,lfoValues);
 }
 
 Sample_Hold_LFOAudioProcessor::~Sample_Hold_LFOAudioProcessor()
 {
+}
+
+const std::vector<int>& Sample_Hold_LFOAudioProcessor::getLfoValues() const
+{
+    return lfoValues;
 }
 
 //==============================================================================

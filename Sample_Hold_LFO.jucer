@@ -8,6 +8,12 @@
               pluginManufacturerCode="gzpl" pluginCode="SHLF" pluginFormats="buildStandalone,buildVST,buildVST3">
   <MAINGROUP id="QU7Hfl" name="Sample_Hold_LFO">
     <GROUP id="{21A49529-24AD-48EF-DCD4-380B5727B58D}" name="Source">
+      <FILE id="ZbYvjM" name="PluginMath.cpp" compile="1" resource="0" file="Source/PluginMath.cpp"/>
+      <FILE id="v9ShCQ" name="PluginMath.h" compile="0" resource="0" file="Source/PluginMath.h"/>
+      <FILE id="pVUtOQ" name="SequenceProcessor.cpp" compile="1" resource="0"
+            file="Source/SequenceProcessor.cpp"/>
+      <FILE id="NqOujD" name="SequenceProcessor.h" compile="0" resource="0"
+            file="Source/SequenceProcessor.h"/>
       <FILE id="VpVIqT" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="NOqDDX" name="PluginProcessor.h" compile="0" resource="0"

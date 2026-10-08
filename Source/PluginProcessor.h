@@ -10,6 +10,8 @@
 
 #include <JuceHeader.h>
 #include "PluginMath.h"
+#include <vector>
+#include "SequenceProcessor.h"
 
 //==============================================================================
 /**
@@ -20,6 +22,8 @@ public:
     //==============================================================================
     Sample_Hold_LFOAudioProcessor();
     ~Sample_Hold_LFOAudioProcessor() override;
+
+    const std::vector<int>& getLfoValues() const;
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -54,9 +58,13 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Sample_Hold_LFOAudioProcessor)
     MainPRNG mainPRNG;
     StartPRNG startPRNG;
+
+    std::vector<int> sequence;
+    std::vector<int> lfoValues;
 };

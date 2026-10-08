@@ -2,8 +2,9 @@
 /*header to display the sequence processor to a graph display
 */
 #include <vector>
-#include "PluginProcessor.h"
+#include "PluginMath.h"
 
-void sequenceProcessor(const std::vector<int> sequence, StartPRNG& StartPRNG);
-
-void graphDisplay(int x, int y);
+void sequenceProcessor(
+    const std::vector<int> &sequence,
+    StartPRNG& StartPRNG,
+    std::vector<int>& lfoValues);

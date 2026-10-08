@@ -1,4 +1,4 @@
-/* this is just to debug and view program outputs*/
+//this is just to debug and view program outputs
 #include <iostream>
 #include <vector>
 

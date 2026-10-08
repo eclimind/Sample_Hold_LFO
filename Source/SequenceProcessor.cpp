@@ -25,7 +25,6 @@ void sequenceProcessor(const vector<int>& sequence, StartPRNG& StartPRNG,std::ve
 
         std::cout << lfo_val << " ";
     }
-
     std::cout << "start position: " << startpos << std::endl;
 }
 

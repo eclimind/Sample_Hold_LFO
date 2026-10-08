@@ -60,6 +60,7 @@ void Sample_Hold_LFOAudioProcessorEditor::paint (juce::Graphics& g)
     for (int i = 0; i < lfoValues.size(); i++){
         const float x = graphArea.getX()+ (static_cast<float>(i) / static_cast<float>(lfoValues.size() - 1)) * graphArea.getWidth();
         const float y = zeroYAxis - (static_cast<float>(lfoValues[i]) / 100.0f) * (graphArea.getHeight() / 2.0f);
+
         if (i == 0)
             lfoPath.startNewSubPath (x, y);
         else

@@ -67,4 +67,5 @@ private:
 
     std::vector<int> sequence;
     std::vector<int> lfoValues;
-};
+
+  };

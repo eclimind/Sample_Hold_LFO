@@ -21,7 +21,7 @@ Sample_Hold_LFOAudioProcessor::Sample_Hold_LFOAudioProcessor()
                      #endif
                        ),
                     mainPRNG(4756),
-                    startPRNG(7325)
+                    startPRNG(239)
 #endif
 {
     sequence.resize(500);

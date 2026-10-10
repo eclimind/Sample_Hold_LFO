@@ -8,4 +8,3 @@ void sequenceProcessor(
     const std::vector<int> &sequence,
     StartPRNG& StartPRNG,
     std::vector<int>& lfoValues);
-    

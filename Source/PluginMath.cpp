@@ -1,20 +1,20 @@
 #include "PluginMath.h"
 
 MainPRNG::MainPRNG(int seed){
-    state = seed;
+    state = ((seed % 200) + 200) % 200;
 }
 
 int MainPRNG::next(){
-    state = (((2734566789528379345* state) + 23579) % 200) - 100;
-    return state;
+    state = ((145 * state) + 179) % 200;
+
+    return -100 + (state * 200 / 199);
 }
 
 StartPRNG::StartPRNG(int seed){
-    state = seed;
+    state = ((seed % 264) + 264) % 264;
 }
 
 int StartPRNG::next(){
-    state = (((352* state) + 46) % 264);
+    state = ((352 * state) + 46) % 264;
     return state;
 }
-

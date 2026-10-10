@@ -1,6 +1,11 @@
 Builds/
 .vscode/
+
 random_value_calculation.cpp
+random_value_calculation.exe
+random_value_calculation.obj
+random_value_calculation.pdb
+random_value_calculation.ilk
 
 *.exe
 *.obj

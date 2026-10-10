@@ -1,3 +1,16 @@
 Builds/
 .vscode/
 random_value_calculation.cpp
+
+*.exe
+*.obj
+*.pdb
+*.ilk
+*.iobj
+*.ipdb
+*.pch
+*.lib
+*.exp
+
+prng_outputs.txt
+prng_visual_outputs.bmp

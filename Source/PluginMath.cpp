@@ -9,8 +9,7 @@ MainPRNG::MainPRNG(int seed){
 int MainPRNG::next(){
     state = (22695477ULL * state + 1ULL) % 4294967296ULL;
 
-    int raw_val = state % 200;
-    return raw_val - 100;
+    return static_cast<int>(state % 201ULL) - 100;
 }
 
 StartPRNG::StartPRNG(int seed){

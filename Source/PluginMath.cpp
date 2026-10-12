@@ -1,20 +1,24 @@
+
 #include "PluginMath.h"
+#include <cstdint>
 
 MainPRNG::MainPRNG(int seed){
-    state = ((seed % 200) + 200) % 200;
+    state = static_cast<uint32_t>(seed);
 }
 
 int MainPRNG::next(){
-    state = ((145 * state) + 179) % 200;
+    state = (22695477ULL * state + 1ULL) % 4294967296ULL;
 
-    return -100 + (state * 200 / 199);
+    int raw_val = state % 200;
+    return raw_val - 100;
 }
 
 StartPRNG::StartPRNG(int seed){
-    state = ((seed % 264) + 264) % 264;
+    state = static_cast<uint32_t>(seed);
 }
 
 int StartPRNG::next(){
-    state = ((352 * state) + 46) % 264;
-    return state;
+    state = (22695477ULL * state + 1ULL) % 4294967296ULL;
+
+    return state % 264;
 }

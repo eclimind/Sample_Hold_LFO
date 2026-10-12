@@ -7,8 +7,8 @@
 
 int main()
 {
-    MainPRNG mainPrng(4756);
-    std::vector<int> sequence(128 * 128);
+    MainPRNG mainPrng(2348);
+    std::vector<int> sequence(1000);
 
     for (auto& value : sequence)
         value = mainPrng.next();

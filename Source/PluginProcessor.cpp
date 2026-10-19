@@ -20,7 +20,7 @@ Sample_Hold_LFOAudioProcessor::Sample_Hold_LFOAudioProcessor()
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
                        ),
-                    mainPRNG(4756),
+                    mainPRNG(5242),
                     startPRNG(239)
 #endif
 {
@@ -29,7 +29,9 @@ Sample_Hold_LFOAudioProcessor::Sample_Hold_LFOAudioProcessor()
         sequence[i] = mainPRNG.next();
     }
 
-    sequenceProcessor(sequence,startPRNG,lfoValues);
+    sequenceProcessor(sequence, startPRNG, rawLfoValues);
+
+    setOutputConstraints(false, 0, 100);
 }
 
 Sample_Hold_LFOAudioProcessor::~Sample_Hold_LFOAudioProcessor()
@@ -41,10 +43,42 @@ const std::vector<int>& Sample_Hold_LFOAudioProcessor::getLfoValues() const
     return lfoValues;
 }
 
+const std::vector<int>& Sample_Hold_LFOAudioProcessor::getRawLfoValues() const
+{
+    return rawLfoValues;
+}
+
 //==============================================================================
 const juce::String Sample_Hold_LFOAudioProcessor::getName() const
 {
     return JucePlugin_Name;
+}
+
+void Sample_Hold_LFOAudioProcessor::setOutputConstraints (
+    bool bipolarModeIn, int lower, int upper)
+{
+    bipolarMode = bipolarModeIn;
+
+    lowerConstraint = juce::jlimit (
+        bipolarMode ? -100 : 0, 100, lower);
+
+    upperConstraint = juce::jlimit (
+        bipolarMode ? 0 : lowerConstraint, 100, upper);
+
+    lfoValues.resize (rawLfoValues.size());
+
+    for (std::size_t i = 0; i < lfoValues.size(); ++i)
+    {
+        const auto rawValue =
+            juce::jlimit (-100, 100, rawLfoValues[i]);
+
+        const auto mappedValue = bipolarMode
+            ? rawValue
+            : (rawValue + 100) / 2;
+
+        lfoValues[i] = juce::jlimit (
+            lowerConstraint, upperConstraint, mappedValue);
+    }
 }
 
 bool Sample_Hold_LFOAudioProcessor::acceptsMidi() const

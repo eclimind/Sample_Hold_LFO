@@ -24,6 +24,13 @@ public:
     ~Sample_Hold_LFOAudioProcessor() override;
 
     const std::vector<int>& getLfoValues() const;
+    const std::vector<int>& getRawLfoValues() const;
+
+    void setOutputConstraints (bool bipolarMode, int lower, int upper);
+
+    bool isBipolarMode() const { return bipolarMode; }
+    int getLowerConstraint() const { return lowerConstraint; }
+    int getUpperConstraint() const { return upperConstraint; }
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -66,6 +73,11 @@ private:
     StartPRNG startPRNG;
 
     std::vector<int> sequence;
+    std::vector<int> rawLfoValues;
     std::vector<int> lfoValues;
+
+    bool bipolarMode = false;
+    int lowerConstraint = 0;
+    int upperConstraint = 100;
 
   };

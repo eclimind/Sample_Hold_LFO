@@ -25,10 +25,31 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
 
+    void lfoGraph (juce::Graphics& g);
+    void lfoConstraints (juce::Graphics& g);
+
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     Sample_Hold_LFOAudioProcessor& audioProcessor;
+
+    void updateConstraintControls();
+    void updateLockButtons(juce::TextButton& lockButton, bool isLocked);
+
+    juce::TextButton bipolarButton {"Bipolar"};
+    juce::Slider ceilingSlider;
+    juce::Slider floorSlider;
+    juce::TextButton lockCeilingButton {"Lock Ceiling"};
+    juce::TextButton lockFloorButton {"Lock Floor"};
+    juce::TextButton lockConstraintsButton {"Lock Constraints"};
+
+    bool bipolarMode = false;
+    bool ceilingLocked = false;
+    bool floorLocked = false;
+    bool constraintsLocked = false;
+    bool updatingControls = false;
+    double ceilingValue = 100.0;
+    double floorValue = 0.0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Sample_Hold_LFOAudioProcessorEditor)
 };

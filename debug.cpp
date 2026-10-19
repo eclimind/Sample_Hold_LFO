@@ -7,7 +7,7 @@
 
 int main()
 {
-    MainPRNG mainPrng(2348);
+    MainPRNG mainPrng(5242);
     std::vector<int> sequence(1000);
 
     for (auto& value : sequence)

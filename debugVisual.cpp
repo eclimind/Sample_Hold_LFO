@@ -6,8 +6,8 @@
 
 #include "Source/PluginMath.h"
 
-const int gridColumns = 128;
-const int gridRows = 128;
+const int gridColumns = 256;
+const int gridRows = 256;
 const int pixelsPerCell = 4;
 const int imageWidth = gridColumns * pixelsPerCell;
 const int imageHeight = gridRows * pixelsPerCell;
@@ -100,7 +100,7 @@ bool writeBitmap(const std::vector<int>& values, const char* path)
 int main()
 {
     // generate the same raw sequence as debug.cpp
-    MainPRNG mainPrng(4756);
+    MainPRNG mainPrng(5242);
     std::vector<int> sequence(gridColumns * gridRows);
 
     for (auto& value : sequence)
@@ -115,7 +115,7 @@ int main()
         return 1;
     }
 
-    std::cout << "Wrote the 128x128 grayscale grid to "
+    std::cout << "Wrote the 256x256 grayscale grid to "
               << outputPath << ".\n";
 
     return 0;

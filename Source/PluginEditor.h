@@ -36,18 +36,21 @@ private:
     void updateConstraintControls();
     void updateLockButtons(juce::TextButton& lockButton, bool isLocked);
 
-    juce::TextButton bipolarButton {"Bipolar"};
+    //juce::TextButton bipolarButton {"Bipolar"};
+    
     juce::Slider ceilingSlider;
     juce::Slider floorSlider;
-    juce::TextButton lockCeilingButton {"Lock Ceiling"};
-    juce::TextButton lockFloorButton {"Lock Floor"};
-    juce::TextButton lockConstraintsButton {"Lock Constraints"};
+    
+    juce::TextButton lockCeilingButton {"o"};
+    juce::TextButton lockFloorButton {"o"};
+    //juce::TextButton lockConstraintsButton {"Lock Constraints"};
 
-    bool bipolarMode = false;
+    //bool bipolarMode = false;
     bool ceilingLocked = false;
     bool floorLocked = false;
-    bool constraintsLocked = false;
     bool updatingControls = false;
+    //bool constraintsLocked = false;
+    
     double ceilingValue = 100.0;
     double floorValue = 0.0;
 

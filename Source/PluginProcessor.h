@@ -33,6 +33,10 @@ public:
     int getUpperConstraint() const { return upperConstraint; }
     void generateNewStartingSeed();
 
+    //rate for sequence steps per second, for future lock hz and tempo lock modules to configure this rate
+    void setConstantRate(double newRate);
+  
+
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
@@ -76,6 +80,13 @@ private:
     std::vector<int> sequence;
     std::vector<int> rawLfoValues;
     std::vector<int> lfoValues;
+
+    mutable juce::CriticalSection sequenceLock;
+
+    double currentSampleRate = 44100.0;
+    double constantRate = 1.0;
+    double samplesUntilNextStep = 0.0;
+    std::size_t nextSequenceIndex = 0;
 
     bool bipolarMode = false;
     int lowerConstraint = 0;

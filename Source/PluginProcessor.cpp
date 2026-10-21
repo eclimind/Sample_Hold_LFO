@@ -46,6 +46,22 @@ Sample_Hold_LFOAudioProcessor::Sample_Hold_LFOAudioProcessor()
 
     sequenceProcessor(sequence, startPRNG, rawLfoValues);
 
+    for (std::size_t start = 0; start < sequence.size(); ++start) {
+        bool matchesWindow = true;
+
+        for (std::size_t i = 0; i < rawLfoValues.size(); ++i) {
+            if (sequence[(start + i) % sequence.size()] != rawLfoValues[i]) {
+                matchesWindow = false;
+                break;
+            }
+        }
+
+        if (matchesWindow){
+            nextSequenceIndex = (start + rawLfoValues.size()) % sequence.size();
+            break;
+        }
+    }
+
     setOutputConstraints(false, 0, 100);
 }
 
@@ -55,12 +71,22 @@ Sample_Hold_LFOAudioProcessor::~Sample_Hold_LFOAudioProcessor()
 
 const std::vector<int>& Sample_Hold_LFOAudioProcessor::getLfoValues() const
 {
+    const juce::ScopedLock lock(sequenceLock);
     return lfoValues;
 }
 
 const std::vector<int>& Sample_Hold_LFOAudioProcessor::getRawLfoValues() const
 {
+    const juce::ScopedLock lock(sequenceLock);
     return rawLfoValues;
+}
+
+void Sample_Hold_LFOAudioProcessor::setConstantRate(double newRate)
+{
+    const juce::ScopedLock lock(sequenceLock);
+
+    constantRate = juce::jmax(0.001, newRate);
+    samplesUntilNextStep = 0.0;
 }
 
 void Sample_Hold_LFOAudioProcessor::generateNewStartingSeed()
@@ -164,6 +190,10 @@ void Sample_Hold_LFOAudioProcessor::prepareToPlay (double sampleRate, int sample
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+    const juce::ScopedLock lock(sequenceLock);
+
+    currentSampleRate = sampleRate;
+    samplesUntilNextStep = 0.0;
 }
 
 void Sample_Hold_LFOAudioProcessor::releaseResources()
@@ -225,6 +255,40 @@ void Sample_Hold_LFOAudioProcessor::processBlock (juce::AudioBuffer<float>& buff
 
         // ..do something to the data...
     }
+    {
+        const juce::ScopedLock lock(sequenceLock);
+        const double samplesPerStep = currentSampleRate / constantRate;
+
+        for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
+        {
+            samplesUntilNextStep += 1.0;
+
+            if (samplesUntilNextStep >= samplesPerStep && !sequence.empty() && !rawLfoValues.empty())
+            {
+                samplesUntilNextStep -= samplesPerStep;
+
+                const int nextValue = sequence[nextSequenceIndex % sequence.size()];
+                nextSequenceIndex = (nextSequenceIndex + 1) % sequence.size();
+                rawLfoValues.erase(rawLfoValues.begin());
+                rawLfoValues.push_back(nextValue);
+
+                const int mappedValue = bipolarMode ? nextValue : (nextValue + 100) / 2;
+                const int constrainedValue = juce::jlimit(lowerConstraint, upperConstraint, mappedValue);
+
+                if (!lfoValues.empty())
+                {
+                    lfoValues.erase(lfoValues.begin());
+                    lfoValues.push_back(constrainedValue);
+                }
+
+                //plugin parameter/controller output connection
+                // const float normalizedOutput = static_cast<float>(constrainedValue) / 100.0f;
+                //send normalizedOutput to the selected plugin parameter here.
+                //keep disabled for now; this updates the sequence/graph only.
+            }
+        }
+    }
+    juce::ignoreUnused(midiMessages);
 }
 
 //==============================================================================

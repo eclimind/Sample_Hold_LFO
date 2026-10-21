@@ -63,5 +63,11 @@ private:
     juce::Label smoothingLabel;
     float smoothingAmount = 0.0f;
 
+    juce::Slider speedRate;
+    float graphRate = 0.0f;
+
+    juce::Slider axisSlider;
+
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Sample_Hold_LFOAudioProcessorEditor)
 };

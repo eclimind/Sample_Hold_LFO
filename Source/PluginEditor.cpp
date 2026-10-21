@@ -10,6 +10,7 @@
 #include "PluginEditor.h"
 #include <algorithm>
 #include <cmath>
+#include "SequenceProcessor.h"
 
 //==============================================================================
 Sample_Hold_LFOAudioProcessorEditor::Sample_Hold_LFOAudioProcessorEditor (Sample_Hold_LFOAudioProcessor& p)
@@ -118,6 +119,25 @@ Sample_Hold_LFOAudioProcessorEditor::Sample_Hold_LFOAudioProcessorEditor (Sample
         repaint();
     };
     smoothingLabel.setJustificationType (juce::Justification::centred);
+
+    addAndMakeVisible(speedRate);
+    speedRate.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    speedRate.setRange(0.1, 1000.0, 0.1);
+    speedRate.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
+    speedRate.onValueChange = [this]{
+        graphRate = static_cast<float>(speedRate.getValue());
+        audioProcessor.setConstantRate(graphRate);
+    };
+
+    addAndMakeVisible(axisSlider);
+    axisSlider.setName("Axis");
+    axisSlider.setSliderStyle(juce::Slider::LinearVertical);
+    axisSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    axisSlider.setColour(juce::Slider::trackColourId, juce::Colours::lightgrey);
+    axisSlider.setColour(juce::Slider::thumbColourId, juce::Colours::white);
+    axisSlider.setRange(0.0, 1.0, 0.001);
+    axisSlider.setValue(0.5, juce::dontSendNotification);
+    axisSlider.onValueChange = [this] { repaint(); };
 }
 
 Sample_Hold_LFOAudioProcessorEditor::~Sample_Hold_LFOAudioProcessorEditor()
@@ -150,100 +170,128 @@ namespace
     }
 }
 
-void Sample_Hold_LFOAudioProcessorEditor::lfoGraph(juce::Graphics& g)
-{
-    auto graphArea = getLocalBounds().reduced(32, 55);
-    graphArea.setRight(getWidth() - 165);
 
-    if (graphArea.getWidth() < 2 || graphArea.getHeight() < 2) {
+void Sample_Hold_LFOAudioProcessorEditor::lfoGraph(juce::Graphics& g) {
+    const auto lfoValues = audioProcessor.getLfoValues();
+    const bool bipolarMode = audioProcessor.isBipolarMode();
+    juce::Path lfoPath;
+    auto graphArea = getLocalBounds().reduced(32, 55);
+    graphArea.setRight(getWidth() - 195);
+
+    if (graphArea.getWidth() < 2 || graphArea.getHeight() < 2)
         return;
-    }
 
     const float graphTop = static_cast<float>(graphArea.getY());
     const float graphBottom = static_cast<float>(graphArea.getBottom() - 1);
     const float graphLeft = static_cast<float>(graphArea.getX());
     const float graphRight = static_cast<float>(graphArea.getRight() - 1);
-    const float zeroYAxis = (graphTop + graphBottom) * 0.5f;
+
+    const float axisPosition = 1.0f - static_cast<float>(axisSlider.getValue());
+    const float zeroYAxis = graphTop + axisPosition * (graphBottom - graphTop);
+
+    const auto drawableWidth = graphRight - graphLeft;
+    const auto drawableHeight = graphBottom - graphTop;
+
+    const int sampleCount = static_cast<int>(lfoValues.size());
+
+    const auto smoothnessAmount = juce::jlimit(0.0f, 1.0f, smoothingAmount);
+    const auto speedRate = juce::jlimit(0.0f, 1.0f, graphRate);
+
+    const auto toGraphX = [&](double index) {
+        const auto fraction = sampleCount <= 1 ? 0.0 : index / static_cast<double>(sampleCount - 1);
+        return graphLeft + static_cast<float>(fraction) * drawableWidth;
+    };
+
+    const auto toGraphY = [&](double value) {
+        if (bipolarMode) {
+            value = juce::jlimit(-100.0, 100.0, value);
+
+            if (value >= 0.0)
+                return zeroYAxis - static_cast<float>(value / 100.0) * (zeroYAxis - graphTop);
+
+            return zeroYAxis + static_cast<float>(-value / 100.0) * (graphBottom - zeroYAxis);
+        }
+        else {
+            value = juce::jlimit(0.0, 100.0, value);
+
+            if (value >= 50.0)
+                return zeroYAxis - static_cast<float>((value - 50.0) / 50.0) * (zeroYAxis - graphTop);
+
+            return zeroYAxis + static_cast<float>((50.0 - value) / 50.0) * (graphBottom - zeroYAxis);
+        }
+    };
+
+    if (!lfoValues.empty()) {
+        if (smoothnessAmount <= 0.001f) {
+            for (int i = 0; i < sampleCount; ++i) {
+                const auto x = toGraphX(i);
+                const auto y = toGraphY(lfoValues[i]);
+
+                if (i == 0) {
+                    lfoPath.startNewSubPath(x, y);
+                }
+                else {
+                    const auto previousY = toGraphY(lfoValues[i - 1]);
+                    lfoPath.lineTo(x, previousY);
+                    lfoPath.lineTo(x, y);
+                }
+            }
+        }
+        else {
+            constexpr int subdivisions = 16;
+
+            const double p = 1.0 - smoothnessAmount;
+            const double exponent = 1.0 + 63.0 * p * p;
+
+            lfoPath.startNewSubPath(toGraphX(0), toGraphY(lfoValues[0]));
+
+            for (int i = 0; i < sampleCount - 1; ++i) {
+                const double A = lfoValues[i];
+                const double B = lfoValues[i + 1];
+
+                for (int step = 1; step <= subdivisions; ++step) {
+                    const double t = static_cast<double>(step) / subdivisions;
+                    const double u = std::pow(t, exponent);
+                    const double s = u * u * (3.0 - 2.0 * u);
+                    const double value = A + (B - A) * s;
+                    const double samplePosition = i + t;
+
+                    lfoPath.lineTo(toGraphX(samplePosition), toGraphY(value));
+                }
+            }
+        }
+    }
 
     g.setColour(juce::Colours::grey);
     g.drawHorizontalLine(juce::roundToInt(zeroYAxis), graphLeft, graphRight);
     g.drawVerticalLine(graphArea.getX(), graphTop, graphBottom);
 
     g.setColour(juce::Colours::lightgrey);
-    g.drawText("+100", 5, graphArea.getY() - 10, 40, 20, juce::Justification::centredRight);
-    g.drawText("0", 20, juce::roundToInt(zeroYAxis - 10), 25, 20, juce::Justification::centredRight);
-    g.drawText("-100", 0, graphArea.getBottom() - 10, 45, 20, juce::Justification::centredRight);
-    g.drawText("0", graphArea.getX() - 5, graphArea.getBottom() + 5, 30, 20, juce::Justification::centredLeft);
-    g.drawText("31", graphArea.getRight() - 30, graphArea.getBottom() + 5, 35, 20, juce::Justification::centredRight);
 
-    const auto lfoValues = audioProcessor.getRawLfoValues();
-
-    if (lfoValues.empty()) {
-        return;
-    }
-
-    juce::Path lfoPath;
-
-    const auto drawableWidth = graphRight - graphLeft;
-    const auto drawableHeight = graphBottom - graphTop;
-    const auto smoothnessAmount = juce::jlimit(0.0f, 1.0f, smoothingAmount);
-    const int sampleCount = static_cast<int>(lfoValues.size());
-
-    const auto toGraphY = [&] (double value) {
-        value = juce::jlimit(-100.0, 100.0, value);
-
-        return graphTop + static_cast<float>(100.0 - value) * (drawableHeight / 200.0f);
-    };
-
-    const auto toGraphX = [&] (double index) {
-        const auto fraction = sampleCount <= 1 ? 0.0 : index / static_cast<double>(sampleCount - 1);
-
-        return graphLeft + static_cast<float>(fraction) * drawableWidth;
-    };
-    if (smoothnessAmount <= 0.001f) {
-        for (int i = 0; i < sampleCount; ++i) {
-            const auto x = toGraphX(i);
-            const auto y = toGraphY(lfoValues[i]);
-
-            if (i == 0) {
-                lfoPath.startNewSubPath(x, y);
-            }
-            else {
-                const auto previousY = toGraphY(lfoValues[i - 1]);
-
-                lfoPath.lineTo(x, previousY);
-                lfoPath.lineTo(x, y);
-            }
-        }
+    if (bipolarMode) {
+        g.drawText("+100", 5, graphArea.getY() - 10, 40, 20, juce::Justification::centredRight);
+        g.drawText("0", 20, juce::roundToInt((graphTop + graphBottom) * 0.5f - 10), 25, 20, juce::Justification::centredRight);
+        g.drawText("-100", 0, graphArea.getBottom() - 10, 45, 20, juce::Justification::centredRight);
     }
     else {
-        constexpr int subdivisions = 16;
-        const double p = 1.0 - smoothnessAmount;
-        const double exponent = 1.0 + 63.0 * p * p;
-
-        lfoPath.startNewSubPath(toGraphX(0), toGraphY(lfoValues[0]));
-
-        for (int i = 0; i < sampleCount - 1; ++i) {
-            const double A = lfoValues[i];
-            const double B = lfoValues[i + 1];
-
-            for (int step = 1; step <= subdivisions; ++step) {
-                const double t = static_cast<double>(step) / subdivisions;
-                const double u = std::pow(t, exponent);
-                const double s = u * u * (3.0 - 2.0 * u);
-                const double value = A + (B - A) * s;
-                const double samplePosition = i + t;
-
-                lfoPath.lineTo(toGraphX(samplePosition), toGraphY(value));
-            }
-        }
+        g.drawText("100", 5, graphArea.getY() - 10, 40, 20, juce::Justification::centredRight);
+        g.drawText("50", 20, juce::roundToInt((graphTop + graphBottom) * 0.5f - 10), 25, 20, juce::Justification::centredRight);
+        g.drawText("0", 0, graphArea.getBottom() - 10, 45, 20, juce::Justification::centredRight);
     }
 
-    g.saveState();
-    g.reduceClipRegion(graphArea);
-    g.setColour(juce::Colours::green);
-    g.strokePath(lfoPath, juce::PathStrokeType(2.0f));
-    g.restoreState();
+    g.drawText("0", graphArea.getX() - 5, graphArea.getBottom() + 5, 30, 20, juce::Justification::centredLeft);
+
+    if (sampleCount > 0) {
+        g.drawText(juce::String(sampleCount - 1), graphArea.getRight() - 30, graphArea.getBottom() + 5, 35, 20, juce::Justification::centredRight);
+    }
+
+    if (!lfoValues.empty()) {
+        g.saveState();
+        g.reduceClipRegion(graphArea);
+        g.setColour(juce::Colours::green);
+        g.strokePath(lfoPath, juce::PathStrokeType(2.0f));
+        g.restoreState();
+    }
 }
 
 void Sample_Hold_LFOAudioProcessorEditor::timerCallback()
@@ -370,6 +418,8 @@ void Sample_Hold_LFOAudioProcessorEditor::resized()
 
     content.removeFromRight(12);
 
+
+
     const int lockY = constraintArea.getY() - 5;
     const int sliderTop = lockY + lockSize + 5;
     const int sliderHeight = constraintArea.getHeight() - lockSize - textboxHeight - 10;
@@ -385,6 +435,13 @@ void Sample_Hold_LFOAudioProcessorEditor::resized()
     auto smoothingArea = juce::Rectangle<int> (newStartingSeedButton.getRight() + 12, newStartingSeedButton.getY() - 35, 60, 100);
     smoothingLabel.setBounds (smoothingArea.removeFromTop (20));
     smoothingSlider.setBounds (smoothingArea);
+
+    speedRate.setBounds(smoothingSlider.getRight() + 12,smoothingSlider.getY() -15,60, 100);
+    //speedRate.setBounds(180, 115, 80, 80);
+
+    auto axisArea = content.removeFromRight(28);
+    content.removeFromRight(8);
+    axisSlider.setBounds(axisArea.getX() + 4, content.getY() + 8, 20, content.getHeight() - 16);
 
 
 

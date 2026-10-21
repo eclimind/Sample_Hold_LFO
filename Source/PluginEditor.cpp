@@ -92,8 +92,44 @@ Sample_Hold_LFOAudioProcessorEditor::Sample_Hold_LFOAudioProcessorEditor (Sample
 
         updateConstraintControls();
     };
-
     updateConstraintControls();
+
+    addAndMakeVisible(newStartingSeedButton);
+    newStartingSeedButton.onClick = [this] {
+        audioProcessor.generateNewStartingSeed();
+        repaint();
+    };
+    newStartingSeedButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkgrey);
+
+    addAndMakeVisible(smoothingSlider);
+    addAndMakeVisible(smoothingLabel);
+    smoothingSlider.setSliderStyle(juce::Slider::Rotary);
+    smoothingSlider.setTextBoxStyle (
+        juce::Slider::TextBoxBelow,
+        false,
+        60,
+        20);
+
+    smoothingSlider.setRange (0.0, 1.0, 0.01);
+    smoothingSlider.setValue (0.0);
+    smoothingSlider.setTextValueSuffix (" smoothness");
+
+    smoothingSlider.onValueChange = [this]
+    {
+        smoothingAmount = static_cast<float> (
+            smoothingSlider.getValue());
+
+        repaint();
+    };
+
+    smoothingLabel.setText (
+        "Smoothness",
+        juce::dontSendNotification);
+
+    smoothingLabel.setJustificationType (
+        juce::Justification::centred);
+    
+
 }
 
 Sample_Hold_LFOAudioProcessorEditor::~Sample_Hold_LFOAudioProcessorEditor()
@@ -137,6 +173,7 @@ void Sample_Hold_LFOAudioProcessorEditor::lfoGraph(juce::Graphics& g)
     const auto drawableWidth = graphRight - graphLeft;
     const auto drawableHeight = graphBottom - graphTop;
 
+    float previousY = 0.0f;
     for (std::size_t i = 0; i < lfoValues.size(); ++i) {
         const auto value = juce::jlimit(-100, 100, lfoValues[i]);
         const auto fraction = lfoValues.size() == 1 ? 0.0f : static_cast<float>(i) / static_cast<float>(lfoValues.size() - 1);
@@ -145,8 +182,11 @@ void Sample_Hold_LFOAudioProcessorEditor::lfoGraph(juce::Graphics& g)
 
         if (i == 0)
             lfoPath.startNewSubPath(x, y);
-        else
+        else{
+            lfoPath.lineTo(x,previousY);
             lfoPath.lineTo(x, y);
+        }
+        previousY = y;
     }
 
     g.saveState();
@@ -284,6 +324,12 @@ void Sample_Hold_LFOAudioProcessorEditor::resized()
 
     lockFloorButton.setBounds(constraintArea.getX(), lockY, lockSize, lockSize);
     floorSlider.setBounds(constraintArea.getX(), sliderTop, sliderWidth, sliderHeight);
+
+    newStartingSeedButton.setBounds (20, 10, 150, 30);
+
+    smoothingLabel.setBounds (60, 95, 120, 20);
+    smoothingSlider.setBounds (200, 50, 120,60);
+    //smoothingSlider.setBounds (500, 10, 240,120);
 
 
 

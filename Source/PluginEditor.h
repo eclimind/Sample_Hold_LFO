@@ -54,5 +54,11 @@ private:
     double ceilingValue = 100.0;
     double floorValue = 0.0;
 
+    juce::TextButton newStartingSeedButton {"Random Start"};
+
+    juce::Slider smoothingSlider;
+    juce::Label smoothingLabel;
+    float smoothingAmount = 0.0f;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Sample_Hold_LFOAudioProcessorEditor)
 };

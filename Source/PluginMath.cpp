@@ -2,7 +2,7 @@
 #include "PluginMath.h"
 #include <cstdint>
 
-MainPRNG::MainPRNG(int seed){
+MainPRNG::MainPRNG(std::uint32_t seed){
     state = static_cast<uint32_t>(seed);
 }
 
@@ -12,7 +12,7 @@ int MainPRNG::next(){
     return static_cast<int>(state % 201ULL) - 100;
 }
 
-StartPRNG::StartPRNG(int seed){
+StartPRNG::StartPRNG(std::uint32_t seed){
     state = static_cast<uint32_t>(seed);
 }
 

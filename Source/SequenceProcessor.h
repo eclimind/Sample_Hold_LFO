@@ -4,6 +4,10 @@
 #include <vector>
 #include "PluginMath.h"
 
+inline constexpr int sequenceDisplayCount = 64;
+
+int getDisplayCount();
+
 void sequenceProcessor(
     const std::vector<int> &sequence,
     StartPRNG& StartPRNG,

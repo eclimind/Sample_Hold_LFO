@@ -8,6 +8,8 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include <algorithm>
+#include <cmath>
 
 //==============================================================================
 Sample_Hold_LFOAudioProcessorEditor::Sample_Hold_LFOAudioProcessorEditor (Sample_Hold_LFOAudioProcessor& p)
@@ -15,7 +17,9 @@ Sample_Hold_LFOAudioProcessorEditor::Sample_Hold_LFOAudioProcessorEditor (Sample
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (740, 500);
+    setSize (710, 510);
+
+    startTimerHz(30);
 
     addAndMakeVisible(floorSlider);
     floorSlider.setName("Floor");
@@ -103,33 +107,17 @@ Sample_Hold_LFOAudioProcessorEditor::Sample_Hold_LFOAudioProcessorEditor (Sample
 
     addAndMakeVisible(smoothingSlider);
     addAndMakeVisible(smoothingLabel);
-    smoothingSlider.setSliderStyle(juce::Slider::Rotary);
-    smoothingSlider.setTextBoxStyle (
-        juce::Slider::TextBoxBelow,
-        false,
-        60,
-        20);
+    smoothingSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    smoothingSlider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 60, 20);
 
     smoothingSlider.setRange (0.0, 1.0, 0.01);
     smoothingSlider.setValue (0.0);
-    smoothingSlider.setTextValueSuffix (" smoothness");
 
-    smoothingSlider.onValueChange = [this]
-    {
-        smoothingAmount = static_cast<float> (
-            smoothingSlider.getValue());
-
+    smoothingSlider.onValueChange = [this] {
+        smoothingAmount = static_cast<float> (smoothingSlider.getValue());
         repaint();
     };
-
-    smoothingLabel.setText (
-        "Smoothness",
-        juce::dontSendNotification);
-
-    smoothingLabel.setJustificationType (
-        juce::Justification::centred);
-    
-
+    smoothingLabel.setJustificationType (juce::Justification::centred);
 }
 
 Sample_Hold_LFOAudioProcessorEditor::~Sample_Hold_LFOAudioProcessorEditor()
@@ -137,6 +125,31 @@ Sample_Hold_LFOAudioProcessorEditor::~Sample_Hold_LFOAudioProcessorEditor()
 }
 
 //==============================================================================
+namespace
+{
+    double catmullRom (
+        const std::vector<int>& values,
+        int i,
+        double t)
+    {
+        const int lastIndex = static_cast<int> (values.size()) - 1;
+
+        const double p0 = values[std::max (0, i - 1)];
+        const double p1 = values[i];
+        const double p2 = values[i + 1];
+        const double p3 = values[std::min (lastIndex, i + 2)];
+
+        const double t2 = t * t;
+        const double t3 = t2 * t;
+
+        return 0.5 * (
+            2.0 * p1
+            + (-p0 + p2) * t
+            + (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t2
+            + (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * t3);
+    }
+}
+
 void Sample_Hold_LFOAudioProcessorEditor::lfoGraph(juce::Graphics& g)
 {
     auto graphArea = getLocalBounds().reduced(32, 55);
@@ -163,30 +176,67 @@ void Sample_Hold_LFOAudioProcessorEditor::lfoGraph(juce::Graphics& g)
     g.drawText("0", graphArea.getX() - 5, graphArea.getBottom() + 5, 30, 20, juce::Justification::centredLeft);
     g.drawText("31", graphArea.getRight() - 30, graphArea.getBottom() + 5, 35, 20, juce::Justification::centredRight);
 
-    const auto& lfoValues = audioProcessor.getRawLfoValues();
+    const auto lfoValues = audioProcessor.getRawLfoValues();
 
-    if (lfoValues.empty())
+    if (lfoValues.empty()) {
         return;
+    }
 
     juce::Path lfoPath;
 
     const auto drawableWidth = graphRight - graphLeft;
     const auto drawableHeight = graphBottom - graphTop;
+    const auto smoothnessAmount = juce::jlimit(0.0f, 1.0f, smoothingAmount);
+    const int sampleCount = static_cast<int>(lfoValues.size());
 
-    float previousY = 0.0f;
-    for (std::size_t i = 0; i < lfoValues.size(); ++i) {
-        const auto value = juce::jlimit(-100, 100, lfoValues[i]);
-        const auto fraction = lfoValues.size() == 1 ? 0.0f : static_cast<float>(i) / static_cast<float>(lfoValues.size() - 1);
-        const auto x = graphLeft + fraction * drawableWidth;
-        const auto y = graphTop + (100.0f - static_cast<float>(value)) * (drawableHeight / 200.0f);
+    const auto toGraphY = [&] (double value) {
+        value = juce::jlimit(-100.0, 100.0, value);
 
-        if (i == 0)
-            lfoPath.startNewSubPath(x, y);
-        else{
-            lfoPath.lineTo(x,previousY);
-            lfoPath.lineTo(x, y);
+        return graphTop + static_cast<float>(100.0 - value) * (drawableHeight / 200.0f);
+    };
+
+    const auto toGraphX = [&] (double index) {
+        const auto fraction = sampleCount <= 1 ? 0.0 : index / static_cast<double>(sampleCount - 1);
+
+        return graphLeft + static_cast<float>(fraction) * drawableWidth;
+    };
+    if (smoothnessAmount <= 0.001f) {
+        for (int i = 0; i < sampleCount; ++i) {
+            const auto x = toGraphX(i);
+            const auto y = toGraphY(lfoValues[i]);
+
+            if (i == 0) {
+                lfoPath.startNewSubPath(x, y);
+            }
+            else {
+                const auto previousY = toGraphY(lfoValues[i - 1]);
+
+                lfoPath.lineTo(x, previousY);
+                lfoPath.lineTo(x, y);
+            }
         }
-        previousY = y;
+    }
+    else {
+        constexpr int subdivisions = 16;
+        const double p = 1.0 - smoothnessAmount;
+        const double exponent = 1.0 + 63.0 * p * p;
+
+        lfoPath.startNewSubPath(toGraphX(0), toGraphY(lfoValues[0]));
+
+        for (int i = 0; i < sampleCount - 1; ++i) {
+            const double A = lfoValues[i];
+            const double B = lfoValues[i + 1];
+
+            for (int step = 1; step <= subdivisions; ++step) {
+                const double t = static_cast<double>(step) / subdivisions;
+                const double u = std::pow(t, exponent);
+                const double s = u * u * (3.0 - 2.0 * u);
+                const double value = A + (B - A) * s;
+                const double samplePosition = i + t;
+
+                lfoPath.lineTo(toGraphX(samplePosition), toGraphY(value));
+            }
+        }
     }
 
     g.saveState();
@@ -194,6 +244,11 @@ void Sample_Hold_LFOAudioProcessorEditor::lfoGraph(juce::Graphics& g)
     g.setColour(juce::Colours::green);
     g.strokePath(lfoPath, juce::PathStrokeType(2.0f));
     g.restoreState();
+}
+
+void Sample_Hold_LFOAudioProcessorEditor::timerCallback()
+{
+    repaint();
 }
 
 void Sample_Hold_LFOAudioProcessorEditor::lfoConstraints(juce::Graphics& g)
@@ -327,9 +382,9 @@ void Sample_Hold_LFOAudioProcessorEditor::resized()
 
     newStartingSeedButton.setBounds (20, 10, 150, 30);
 
-    smoothingLabel.setBounds (60, 95, 120, 20);
-    smoothingSlider.setBounds (200, 50, 120,60);
-    //smoothingSlider.setBounds (500, 10, 240,120);
+    auto smoothingArea = juce::Rectangle<int> (newStartingSeedButton.getRight() + 12, newStartingSeedButton.getY() - 35, 60, 100);
+    smoothingLabel.setBounds (smoothingArea.removeFromTop (20));
+    smoothingSlider.setBounds (smoothingArea);
 
 
 

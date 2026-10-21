@@ -14,7 +14,7 @@
 //==============================================================================
 /**
 */
-class Sample_Hold_LFOAudioProcessorEditor  : public juce::AudioProcessorEditor
+class Sample_Hold_LFOAudioProcessorEditor  : public juce::AudioProcessorEditor, private juce::Timer
 {
 public:
     Sample_Hold_LFOAudioProcessorEditor (Sample_Hold_LFOAudioProcessor&);
@@ -25,8 +25,11 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
 
+    void timerCallback() override;
+
     void lfoGraph (juce::Graphics& g);
     void lfoConstraints (juce::Graphics& g);
+    
 
 private:
     // This reference is provided as a quick way for your editor to

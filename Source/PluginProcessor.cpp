@@ -9,6 +9,21 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+/*this portion of code is responsible for constraining the seed of the prng by declaring the initial seed, and performing a multiplication modulus operation by grabbing the current time of execution times seed modulus by a specific value*/
+
+namespace {
+    constexpr std::uint32_t mainPRNGBaseSeed = 293;
+    constexpr std::uint64_t seedModulus = 4294967296ULL;
+
+    std::uint32_t createTimeSeed()
+    {
+        const auto currentTime =
+            static_cast<std::uint64_t> (juce::Time::currentTimeMillis());
+
+        return static_cast<std::uint32_t>((static_cast<std::uint64_t> (mainPRNGBaseSeed) * currentTime) % seedModulus);
+    }
+}
+
 //==============================================================================
 Sample_Hold_LFOAudioProcessor::Sample_Hold_LFOAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -20,7 +35,7 @@ Sample_Hold_LFOAudioProcessor::Sample_Hold_LFOAudioProcessor()
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
                        ),
-                    mainPRNG(5242),
+                    mainPRNG(createTimeSeed()),
                     startPRNG(239)
 #endif
 {
@@ -46,6 +61,13 @@ const std::vector<int>& Sample_Hold_LFOAudioProcessor::getLfoValues() const
 const std::vector<int>& Sample_Hold_LFOAudioProcessor::getRawLfoValues() const
 {
     return rawLfoValues;
+}
+
+void Sample_Hold_LFOAudioProcessor::generateNewStartingSeed()
+{
+    sequenceProcessor(sequence, startPRNG, rawLfoValues);
+    setOutputConstraints(bipolarMode,lowerConstraint,upperConstraint);
+
 }
 
 //==============================================================================

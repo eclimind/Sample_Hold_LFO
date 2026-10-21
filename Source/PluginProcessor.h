@@ -31,6 +31,7 @@ public:
     bool isBipolarMode() const { return bipolarMode; }
     int getLowerConstraint() const { return lowerConstraint; }
     int getUpperConstraint() const { return upperConstraint; }
+    void generateNewStartingSeed();
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;

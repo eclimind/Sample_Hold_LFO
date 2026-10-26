@@ -36,6 +36,8 @@ private:
     // access the processor object that created it.
     Sample_Hold_LFOAudioProcessor& audioProcessor;
 
+    juce::Rectangle<int> getGraphBounds() const;
+
     void updateConstraintControls();
     void updateLockButtons(juce::TextButton& lockButton, bool isLocked);
 
@@ -57,7 +59,7 @@ private:
     double ceilingValue = 100.0;
     double floorValue = 0.0;
 
-    juce::TextButton newStartingSeedButton {"Random Start"};
+    juce::TextButton newStartingSeedButton {"Manual"};
 
     juce::Slider smoothingSlider;
     juce::Label smoothingLabel;
@@ -67,6 +69,8 @@ private:
     float graphRate = 0.0f;
 
     juce::Slider axisSlider;
+
+    juce::ComboBox guiScale;
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Sample_Hold_LFOAudioProcessorEditor)

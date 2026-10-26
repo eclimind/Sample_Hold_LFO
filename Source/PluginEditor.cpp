@@ -12,13 +12,17 @@
 #include <cmath>
 #include "SequenceProcessor.h"
 
+int guiX = 800;
+int guiY = 600; 
+
 //==============================================================================
 Sample_Hold_LFOAudioProcessorEditor::Sample_Hold_LFOAudioProcessorEditor (Sample_Hold_LFOAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (710, 510);
+
+    setSize (guiX, guiY);
 
     startTimerHz(30);
 
@@ -46,14 +50,6 @@ Sample_Hold_LFOAudioProcessorEditor::Sample_Hold_LFOAudioProcessorEditor (Sample
     lockFloorButton.setColour(juce::TextButton::textColourOffId, juce::Colours::white);
     lockFloorButton.setColour(juce::TextButton::textColourOnId, juce::Colours::yellow);
     updateLockButtons(lockFloorButton, false);
-
-    addAndMakeVisible(lockCeilingButton);
-    lockCeilingButton.setClickingTogglesState(true);
-    lockCeilingButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkgrey);
-    lockCeilingButton.setColour(juce::TextButton::textColourOffId, juce::Colours::white);
-    lockCeilingButton.setColour(juce::TextButton::textColourOnId, juce::Colours::yellow);
-    updateLockButtons(lockCeilingButton, false);
-
     lockFloorButton.onClick = [this] {
         floorLocked = lockFloorButton.getToggleState();
 
@@ -63,17 +59,6 @@ Sample_Hold_LFOAudioProcessorEditor::Sample_Hold_LFOAudioProcessorEditor (Sample
         updateLockButtons(lockFloorButton, floorLocked);
         updateConstraintControls();
     };
-
-    lockCeilingButton.onClick = [this] {
-        ceilingLocked = lockCeilingButton.getToggleState();
-
-        if (ceilingLocked)
-            ceilingValue = ceilingSlider.getValue();
-
-        updateLockButtons(lockCeilingButton, ceilingLocked);
-        updateConstraintControls();
-    };
-
     floorSlider.onValueChange = [this] {
         if (updatingControls)
             return;
@@ -86,6 +71,21 @@ Sample_Hold_LFOAudioProcessorEditor::Sample_Hold_LFOAudioProcessorEditor (Sample
         updateConstraintControls();
     };
 
+    addAndMakeVisible(lockCeilingButton);
+    lockCeilingButton.setClickingTogglesState(true);
+    lockCeilingButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkgrey);
+    lockCeilingButton.setColour(juce::TextButton::textColourOffId, juce::Colours::white);
+    lockCeilingButton.setColour(juce::TextButton::textColourOnId, juce::Colours::yellow);
+    updateLockButtons(lockCeilingButton, false);
+    lockCeilingButton.onClick = [this] {
+        ceilingLocked = lockCeilingButton.getToggleState();
+
+        if (ceilingLocked)
+            ceilingValue = ceilingSlider.getValue();
+
+        updateLockButtons(lockCeilingButton, ceilingLocked);
+        updateConstraintControls();
+    };
     ceilingSlider.onValueChange = [this] {
         if (updatingControls)
             return;
@@ -110,10 +110,8 @@ Sample_Hold_LFOAudioProcessorEditor::Sample_Hold_LFOAudioProcessorEditor (Sample
     addAndMakeVisible(smoothingLabel);
     smoothingSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     smoothingSlider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 60, 20);
-
     smoothingSlider.setRange (0.0, 1.0, 0.01);
     smoothingSlider.setValue (0.0);
-
     smoothingSlider.onValueChange = [this] {
         smoothingAmount = static_cast<float> (smoothingSlider.getValue());
         repaint();
@@ -138,6 +136,62 @@ Sample_Hold_LFOAudioProcessorEditor::Sample_Hold_LFOAudioProcessorEditor (Sample
     axisSlider.setRange(0.0, 1.0, 0.001);
     axisSlider.setValue(0.5, juce::dontSendNotification);
     axisSlider.onValueChange = [this] { repaint(); };
+
+    addAndMakeVisible(guiScale);
+    guiScale.addItem("25%",1);
+    guiScale.addItem("50%",2);
+    guiScale.addItem("75%",3);
+    guiScale.addItem("100%",4);
+    guiScale.addItem("125%",5);
+    guiScale.addItem("150%",6);
+    guiScale.addItem("175%",7);
+    guiScale.addItem("200%",8);
+    guiScale.setSelectedId(4);
+    guiScale.onChange = [this] {
+        switch (guiScale.getSelectedId()) {
+            case 1:
+                guiX = 400;
+                guiY = 300;
+                break;
+
+            case 2:
+                guiX = 600;
+                guiY = 450;
+                break;
+
+            case 3:
+                guiX = 700;
+                guiY = 525;
+                break;
+
+            case 4:
+                guiX = 800;
+                guiY = 600;
+                break;
+
+            case 5:
+                guiX = 1000;
+                guiY = 750;
+                break;
+
+            case 6:
+                guiX = 1200;
+                guiY = 900;
+                break;
+
+            case 7:
+                guiX = 1400;
+                guiY = 1050;
+                break;
+
+            case 8:
+                guiX = 1600;
+                guiY = 1200;
+                break;
+        };
+
+        setSize(guiX, guiY);
+    };
 }
 
 Sample_Hold_LFOAudioProcessorEditor::~Sample_Hold_LFOAudioProcessorEditor()
@@ -170,18 +224,30 @@ namespace
     }
 }
 
+juce::Rectangle<int> Sample_Hold_LFOAudioProcessorEditor::getGraphBounds() const {
+    const int graphTop = 100;
+    const int graphBottom = getHeight() - 55;
+    const int graphLeft = 32;
+    const int graphRight = getWidth() - 195;
+
+    return juce::Rectangle<int>(
+        graphLeft,
+        graphTop,
+        juce::jmax(0, graphRight - graphLeft),
+        juce::jmax(0, graphBottom - graphTop)
+    );
+}
 
 void Sample_Hold_LFOAudioProcessorEditor::lfoGraph(juce::Graphics& g) {
     const auto lfoValues = audioProcessor.getLfoValues();
     const bool bipolarMode = audioProcessor.isBipolarMode();
     juce::Path lfoPath;
-    auto graphArea = getLocalBounds().reduced(32, 55);
-    graphArea.setRight(getWidth() - 195);
+    auto graphArea = getGraphBounds();
 
     if (graphArea.getWidth() < 2 || graphArea.getHeight() < 2)
         return;
 
-    const float graphTop = static_cast<float>(graphArea.getY());
+    const float graphTop = static_cast<float>(graphArea.getY()-3);
     const float graphBottom = static_cast<float>(graphArea.getBottom() - 1);
     const float graphLeft = static_cast<float>(graphArea.getX());
     const float graphRight = static_cast<float>(graphArea.getRight() - 1);
@@ -301,7 +367,21 @@ void Sample_Hold_LFOAudioProcessorEditor::timerCallback()
 
 void Sample_Hold_LFOAudioProcessorEditor::lfoConstraints(juce::Graphics& g)
 {
-    auto constraintArea = juce::Rectangle<int>(getWidth() - 150, 65, 100, getHeight() - 100);
+    const auto graphArea = getGraphBounds();
+
+    const float scaleX = static_cast<float>(getWidth()) / 800.0f;
+    const float scaleY = static_cast<float>(getHeight()) / 600.0f;
+    const float scale = juce::jmin(scaleX, scaleY);
+
+    const int constraintWidth = juce::roundToInt(100 * scale);
+    const int constraintGap = juce::roundToInt(12 * scale);
+
+    auto constraintArea = juce::Rectangle<int>(
+        graphArea.getRight() + constraintGap,
+        graphArea.getY(),
+        constraintWidth,
+        graphArea.getHeight()
+    );
 
     g.setColour(juce::Colours::darkgrey);
     g.drawRect(constraintArea, 1);
@@ -310,10 +390,9 @@ void Sample_Hold_LFOAudioProcessorEditor::lfoConstraints(juce::Graphics& g)
         const auto fraction = value / 100.0;
         return constraintArea.getBottom() - 1 - juce::roundToInt(fraction * (constraintArea.getHeight() - 2));
     };
+
     const auto getThumbY = [](juce::Slider& slider) {
         const auto sliderBounds = slider.getBounds();
-        const auto range = slider.getRange();
-
         const auto proportion = slider.valueToProportionOfLength(slider.getValue());
 
         const auto trackTop = sliderBounds.getY() + 10;
@@ -322,14 +401,19 @@ void Sample_Hold_LFOAudioProcessorEditor::lfoConstraints(juce::Graphics& g)
         return trackBottom - juce::roundToInt(proportion * (trackBottom - trackTop));
     };
 
+
     const auto floorY = getThumbY(floorSlider);
     const auto ceilingY = getThumbY(ceilingSlider);
 
     g.setColour(floorLocked ? juce::Colours::yellow : juce::Colours::lightgrey);
-    g.drawHorizontalLine(floorY, static_cast<float>(constraintArea.getX() + 3), static_cast<float>(constraintArea.getRight() - 3));
+    g.drawHorizontalLine(floorY,
+        static_cast<float>(constraintArea.getX() + 3),
+        static_cast<float>(constraintArea.getRight() - 3));
 
     g.setColour(ceilingLocked ? juce::Colours::yellow : juce::Colours::lightgrey);
-    g.drawHorizontalLine(ceilingY, static_cast<float>(constraintArea.getX() + 3), static_cast<float>(constraintArea.getRight() - 3));
+    g.drawHorizontalLine(ceilingY,
+        static_cast<float>(constraintArea.getX() + 3),
+        static_cast<float>(constraintArea.getRight() - 3));
 }
 
 void Sample_Hold_LFOAudioProcessorEditor::updateLockButtons(juce::TextButton& button, bool isLocked)
@@ -387,8 +471,8 @@ void Sample_Hold_LFOAudioProcessorEditor::paint(juce::Graphics& g)
 {
     g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
 
-    auto panel = getLocalBounds().reduced(18, 18);
-    panel.removeFromTop(25);
+    auto panel = getLocalBounds().reduced(18, 15);
+    panel.removeFromTop(50);
 
     g.setColour(juce::Colour(0xff303d43));
     g.fillRoundedRectangle(panel.toFloat(), 8.0f);
@@ -404,45 +488,67 @@ void Sample_Hold_LFOAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
-    auto panel = getLocalBounds().reduced(18, 18);
-    panel.removeFromTop(25);
+    const float scaleX = static_cast<float>(getWidth()) / 800.0f;
+    const float scaleY = static_cast<float>(getHeight()) / 600.0f;
+    const float scale = juce::jmin(scaleX, scaleY);
 
-    const int panelPadding = 14;
-    const int lockSize = 22;
-    const int textboxHeight = 22;
-    const int sliderWidth = 34;
-    const int sliderGap = 8;
+    const auto scaled = [scale](int value) {
+        return juce::roundToInt(value * scale);
+    };
 
+    auto guiArea = getLocalBounds();
+
+    auto panel = getLocalBounds().reduced(18, 15);
+    panel.removeFromTop(50);
+    
+    const int panelPadding = scaled(14);
     auto content = panel.reduced(panelPadding);
-    auto constraintArea = content.removeFromRight(100);
 
-    content.removeFromRight(12);
+    auto graphArea = getGraphBounds();
+    const int constraintWidth = scaled(100);
+    const int constraintGap = scaled(12);
+    auto constraintArea = juce::Rectangle<int>(
+        graphArea.getRight() + constraintGap,
+        graphArea.getY(),
+        constraintWidth,
+        graphArea.getHeight()
+    );
 
-
-
-    const int lockY = constraintArea.getY() - 5;
-    const int sliderTop = lockY + lockSize + 5;
-    const int sliderHeight = constraintArea.getHeight() - lockSize - textboxHeight - 10;
-
-    lockCeilingButton.setBounds(constraintArea.getX() + sliderWidth + sliderGap, lockY, lockSize, lockSize);
-    ceilingSlider.setBounds(constraintArea.getX() + sliderWidth + sliderGap, sliderTop, sliderWidth, sliderHeight);
+    const int lockSize = scaled(22);
+    const int sliderGap = scaled(8);
+    const int sliderWidth = (constraintArea.getWidth() - sliderGap) / 2;
+    const int textboxHeight = scaled(20);
+    const int lockY = constraintArea.getY();
+    const int sliderTop = lockY + lockSize + scaled(5);
+    const int sliderBottom = constraintArea.getBottom() - textboxHeight;
+    const int sliderHeight = juce::jmax(1, sliderBottom - sliderTop);
 
     lockFloorButton.setBounds(constraintArea.getX(), lockY, lockSize, lockSize);
     floorSlider.setBounds(constraintArea.getX(), sliderTop, sliderWidth, sliderHeight);
 
-    newStartingSeedButton.setBounds (20, 10, 150, 30);
+    lockCeilingButton.setBounds(constraintArea.getX() + sliderWidth + sliderGap, lockY, lockSize, lockSize);
+    ceilingSlider.setBounds(constraintArea.getX() + sliderWidth + sliderGap, sliderTop, sliderWidth, sliderHeight);
+    
+    const int controlSize = scaled(50);
+    const int controlGap = controlSize / 3;
+    const int controlY = scaled(10);
+    const int controlStartX = scaled(20);
 
-    auto smoothingArea = juce::Rectangle<int> (newStartingSeedButton.getRight() + 12, newStartingSeedButton.getY() - 35, 60, 100);
-    smoothingLabel.setBounds (smoothingArea.removeFromTop (20));
-    smoothingSlider.setBounds (smoothingArea);
+    newStartingSeedButton.setBounds(controlStartX,controlY,controlSize,controlSize);
 
-    speedRate.setBounds(smoothingSlider.getRight() + 12,smoothingSlider.getY() -15,60, 100);
-    //speedRate.setBounds(180, 115, 80, 80);
+    smoothingSlider.setBounds(newStartingSeedButton.getRight() + controlGap,controlY,controlSize,controlSize);
 
-    auto axisArea = content.removeFromRight(28);
-    content.removeFromRight(8);
-    axisSlider.setBounds(axisArea.getX() + 4, content.getY() + 8, 20, content.getHeight() - 16);
+    smoothingLabel.setBounds(smoothingSlider.getX(),smoothingSlider.getY() - scaled(18),controlSize,scaled(18));
 
+    speedRate.setBounds(smoothingSlider.getRight() + controlGap,controlY,controlSize,controlSize);
 
+    auto axisArea = content.removeFromRight(scaled(28));
+    content.removeFromRight(scaled(8));
+    axisSlider.setBounds(axisArea.getX() + scaled(4), content.getY() + scaled(8), scaled(20), content.getHeight() - scaled(16));
 
+    const int comboWidth = scaled(60);
+    const int comboHeight = scaled(30);
+    const int comboMargin = scaled(12);
+
+    guiScale.setBounds(getWidth() - comboWidth - comboMargin,newStartingSeedButton.getY(),comboWidth,comboHeight);
 }

@@ -8,8 +8,15 @@ using namespace std;
 #include "PluginMath.h"
 #include "SequenceProcessor.h"
 
+int sequenceDisplayCount = 64;
+
 int getDisplayCount() {
     return sequenceDisplayCount;
+}
+
+void setDisplayCount(int count) {
+    if (count == 4 || count == 8 || count == 16 || count == 32 || count == 64 || count == 128)
+        sequenceDisplayCount = count;
 }
 
 void sequenceProcessor(const vector<int>& sequence, StartPRNG& StartPRNG, std::vector<int>& lfoValues){

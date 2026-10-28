@@ -4,8 +4,9 @@
 #include <vector>
 #include "PluginMath.h"
 
-inline constexpr int sequenceDisplayCount = 64;
+extern int sequenceDisplayCount;
 
 int getDisplayCount();
+void setDisplayCount(int count);
 
 void sequenceProcessor(const std::vector<int> &sequence, StartPRNG& StartPRNG, std::vector<int>& lfoValues);

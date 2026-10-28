@@ -26,172 +26,207 @@ Sample_Hold_LFOAudioProcessorEditor::Sample_Hold_LFOAudioProcessorEditor (Sample
 
     startTimerHz(30);
 
-    addAndMakeVisible(floorSlider);
-    floorSlider.setName("Floor");
-    floorSlider.setSliderStyle(juce::Slider::LinearVertical);
-    floorSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 48, 20);
-    floorSlider.setColour(juce::Slider::trackColourId, juce::Colours::lightgrey);
-    floorSlider.setColour(juce::Slider::thumbColourId, juce::Colours::white);
-    floorSlider.setRange(0.0, 100.0, 1.0);
-    floorSlider.setValue(0.0, juce::dontSendNotification);
+    addAndMakeVisible(floorSlider); {
+        floorSlider.setName("Floor");
+        floorSlider.setSliderStyle(juce::Slider::LinearVertical);
+        floorSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 48, 20);
+        floorSlider.setColour(juce::Slider::trackColourId, juce::Colours::lightgrey);
+        floorSlider.setColour(juce::Slider::thumbColourId, juce::Colours::white);
+        floorSlider.setRange(0.0, 100.0, 1.0);
+        floorSlider.setValue(0.0, juce::dontSendNotification);
+    }
 
-    addAndMakeVisible(ceilingSlider);
-    ceilingSlider.setName("Ceiling");
-    ceilingSlider.setSliderStyle(juce::Slider::LinearVertical);
-    ceilingSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 48, 20);
-    ceilingSlider.setColour(juce::Slider::trackColourId, juce::Colours::lightgrey);
-    ceilingSlider.setColour(juce::Slider::thumbColourId, juce::Colours::white);
-    ceilingSlider.setRange(0.0, 100.0, 1.0);
-    ceilingSlider.setValue(100.0, juce::dontSendNotification);
+    addAndMakeVisible(ceilingSlider); {
+        ceilingSlider.setName("Ceiling");
+        ceilingSlider.setSliderStyle(juce::Slider::LinearVertical);
+        ceilingSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 48, 20);
+        ceilingSlider.setColour(juce::Slider::trackColourId, juce::Colours::lightgrey);
+        ceilingSlider.setColour(juce::Slider::thumbColourId, juce::Colours::white);
+        ceilingSlider.setRange(0.0, 100.0, 1.0);
+        ceilingSlider.setValue(100.0, juce::dontSendNotification);
+    }
 
-    addAndMakeVisible(lockFloorButton);
-    lockFloorButton.setClickingTogglesState(true);
-    lockFloorButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkgrey);
-    lockFloorButton.setColour(juce::TextButton::textColourOffId, juce::Colours::white);
-    lockFloorButton.setColour(juce::TextButton::textColourOnId, juce::Colours::yellow);
-    updateLockButtons(lockFloorButton, false);
-    lockFloorButton.onClick = [this] {
-        floorLocked = lockFloorButton.getToggleState();
+    addAndMakeVisible(lockFloorButton); {
+        lockFloorButton.setClickingTogglesState(true);
+        lockFloorButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkgrey);
+        lockFloorButton.setColour(juce::TextButton::textColourOffId, juce::Colours::white);
+        lockFloorButton.setColour(juce::TextButton::textColourOnId, juce::Colours::yellow);
+        updateLockButtons(lockFloorButton, false);
 
-        if (floorLocked)
-            floorValue = floorSlider.getValue();
+        lockFloorButton.onClick = [this] {
+            floorLocked = lockFloorButton.getToggleState();
 
-        updateLockButtons(lockFloorButton, floorLocked);
-        updateConstraintControls();
-    };
-    floorSlider.onValueChange = [this] {
-        if (updatingControls)
-            return;
+            if (floorLocked)
+                floorValue = floorSlider.getValue();
 
-        if (floorLocked) {
-            floorSlider.setValue(floorValue, juce::dontSendNotification);
-            return;
-        }
-
-        updateConstraintControls();
-    };
-
-    addAndMakeVisible(lockCeilingButton);
-    lockCeilingButton.setClickingTogglesState(true);
-    lockCeilingButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkgrey);
-    lockCeilingButton.setColour(juce::TextButton::textColourOffId, juce::Colours::white);
-    lockCeilingButton.setColour(juce::TextButton::textColourOnId, juce::Colours::yellow);
-    updateLockButtons(lockCeilingButton, false);
-    lockCeilingButton.onClick = [this] {
-        ceilingLocked = lockCeilingButton.getToggleState();
-
-        if (ceilingLocked)
-            ceilingValue = ceilingSlider.getValue();
-
-        updateLockButtons(lockCeilingButton, ceilingLocked);
-        updateConstraintControls();
-    };
-    ceilingSlider.onValueChange = [this] {
-        if (updatingControls)
-            return;
-
-        if (ceilingLocked) {
-            ceilingSlider.setValue(ceilingValue, juce::dontSendNotification);
-            return;
-        }
-
-        updateConstraintControls();
-    };
-    updateConstraintControls();
-
-    addAndMakeVisible(newStartingSeedButton);
-    newStartingSeedButton.onClick = [this] {
-        audioProcessor.generateNewStartingSeed();
-        repaint();
-    };
-    newStartingSeedButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkgrey);
-
-    addAndMakeVisible(smoothingSlider);
-    addAndMakeVisible(smoothingLabel);
-    smoothingSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    smoothingSlider.setTextBoxStyle (juce::Slider::TextBoxBelow, false, 60, 20);
-    smoothingSlider.setRange (0.0, 1.0, 0.01);
-    smoothingSlider.setValue (0.0);
-    smoothingSlider.onValueChange = [this] {
-        smoothingAmount = static_cast<float> (smoothingSlider.getValue());
-        repaint();
-    };
-    smoothingLabel.setJustificationType (juce::Justification::centred);
-
-    addAndMakeVisible(speedRate);
-    speedRate.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    speedRate.setRange(0.1, 1000.0, 0.1);
-    speedRate.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
-    speedRate.onValueChange = [this]{
-        graphRate = static_cast<float>(speedRate.getValue());
-        audioProcessor.setConstantRate(graphRate);
-    };
-
-    addAndMakeVisible(axisSlider);
-    axisSlider.setName("Axis");
-    axisSlider.setSliderStyle(juce::Slider::LinearVertical);
-    axisSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    axisSlider.setColour(juce::Slider::trackColourId, juce::Colours::lightgrey);
-    axisSlider.setColour(juce::Slider::thumbColourId, juce::Colours::white);
-    axisSlider.setRange(0.0, 1.0, 0.001);
-    axisSlider.setValue(0.5, juce::dontSendNotification);
-    axisSlider.onValueChange = [this] { repaint(); };
-
-    addAndMakeVisible(guiScale);
-    guiScale.addItem("25%",1);
-    guiScale.addItem("50%",2);
-    guiScale.addItem("75%",3);
-    guiScale.addItem("100%",4);
-    guiScale.addItem("125%",5);
-    guiScale.addItem("150%",6);
-    guiScale.addItem("175%",7);
-    guiScale.addItem("200%",8);
-    guiScale.setSelectedId(4);
-    guiScale.onChange = [this] {
-        switch (guiScale.getSelectedId()) {
-            case 1:
-                guiX = 400;
-                guiY = 300;
-                break;
-
-            case 2:
-                guiX = 600;
-                guiY = 450;
-                break;
-
-            case 3:
-                guiX = 700;
-                guiY = 525;
-                break;
-
-            case 4:
-                guiX = 800;
-                guiY = 600;
-                break;
-
-            case 5:
-                guiX = 1000;
-                guiY = 750;
-                break;
-
-            case 6:
-                guiX = 1200;
-                guiY = 900;
-                break;
-
-            case 7:
-                guiX = 1400;
-                guiY = 1050;
-                break;
-
-            case 8:
-                guiX = 1600;
-                guiY = 1200;
-                break;
+            updateLockButtons(lockFloorButton, floorLocked);
+            updateConstraintControls();
         };
 
-        setSize(guiX, guiY);
-    };
+        floorSlider.onValueChange = [this] {
+            if (updatingControls)
+                return;
+
+            if (floorLocked) {
+                floorSlider.setValue(floorValue, juce::dontSendNotification);
+                return;
+            }
+
+            updateConstraintControls();
+        };
+    }
+
+    addAndMakeVisible(lockCeilingButton); {
+        lockCeilingButton.setClickingTogglesState(true);
+        lockCeilingButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkgrey);
+        lockCeilingButton.setColour(juce::TextButton::textColourOffId, juce::Colours::white);
+        lockCeilingButton.setColour(juce::TextButton::textColourOnId, juce::Colours::yellow);
+        updateLockButtons(lockCeilingButton, false);
+
+        lockCeilingButton.onClick = [this] {
+            ceilingLocked = lockCeilingButton.getToggleState();
+
+            if (ceilingLocked)
+                ceilingValue = ceilingSlider.getValue();
+
+            updateLockButtons(lockCeilingButton, ceilingLocked);
+            updateConstraintControls();
+        };
+
+        ceilingSlider.onValueChange = [this] {
+            if (updatingControls)
+                return;
+
+            if (ceilingLocked) {
+                ceilingSlider.setValue(ceilingValue, juce::dontSendNotification);
+                return;
+            }
+
+            updateConstraintControls();
+        };
+
+        updateConstraintControls();
+    }
+
+    addAndMakeVisible(newStartingSeedButton); {
+        newStartingSeedButton.setColour(juce::TextButton::buttonColourId,juce::Colours::limegreen);
+        newStartingSeedButton.onClick = [this] {
+            audioProcessor.generateNewStartingSeed();
+            repaint();
+        };
+
+        newStartingSeedButton.setColour(juce::TextButton::buttonColourId, juce::Colours::darkgrey);
+    }
+
+    addAndMakeVisible(smoothingSlider); {
+        addAndMakeVisible(smoothingLabel);
+
+        smoothingSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+        smoothingSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
+        smoothingSlider.setRange(0.0, 1.0, 0.01);
+        smoothingSlider.setValue(0.0);
+
+        smoothingSlider.onValueChange = [this] {
+            smoothingAmount = static_cast<float>(smoothingSlider.getValue());
+            repaint();
+        };
+
+        smoothingLabel.setJustificationType(juce::Justification::centred);
+    }
+
+    addAndMakeVisible(speedRate); {
+        speedRate.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+        speedRate.setRange(0.1, 1000.0, 0.1);
+        speedRate.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
+
+        speedRate.onValueChange = [this] {
+            graphRate = static_cast<float>(speedRate.getValue());
+            audioProcessor.setConstantRate(graphRate);
+        };
+    }
+
+    addAndMakeVisible(axisSlider); {
+        axisSlider.setName("Axis");
+        axisSlider.setSliderStyle(juce::Slider::LinearVertical);
+        axisSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+        axisSlider.setColour(juce::Slider::trackColourId, juce::Colours::lightgrey);
+        axisSlider.setColour(juce::Slider::thumbColourId, juce::Colours::white);
+        axisSlider.setRange(0.0, 1.0, 0.001);
+        axisSlider.setValue(0.5, juce::dontSendNotification);
+        axisSlider.onValueChange = [this] { repaint(); };
+    }
+
+    addAndMakeVisible(guiScale); {
+        guiScale.addItem("25%", 1);
+        guiScale.addItem("50%", 2);
+        guiScale.addItem("75%", 3);
+        guiScale.addItem("100%", 4);
+        guiScale.addItem("125%", 5);
+        guiScale.addItem("150%", 6);
+        guiScale.addItem("175%", 7);
+        guiScale.addItem("200%", 8);
+        guiScale.setSelectedId(4);
+
+        guiScale.onChange = [this] {
+            switch (guiScale.getSelectedId()) {
+                case 1:
+                    guiX = 400;
+                    guiY = 300;
+                    break;
+                case 2:
+                    guiX = 600;
+                    guiY = 450;
+                    break;
+                case 3:
+                    guiX = 700;
+                    guiY = 525;
+                    break;
+                case 4:
+                    guiX = 800;
+                    guiY = 600;
+                    break;
+                case 5:
+                    guiX = 1000;
+                    guiY = 750;
+                    break;
+                case 6:
+                    guiX = 1200;
+                    guiY = 900;
+                    break;
+                case 7:
+                    guiX = 1400;
+                    guiY = 1050;
+                    break;
+                case 8:
+                    guiX = 1600;
+                    guiY = 1200;
+                    break;
+            }
+
+            setSize(guiX, guiY);
+        };
+    }
+
+    addAndMakeVisible(graphBlockSize); {
+        graphBlockSize.setColour(juce::ComboBox::backgroundColourId,juce::Colours::green);
+        int itemID = 1;
+        for (int blockSize = 4; blockSize <= 128; blockSize *= 2) {
+            graphBlockSize.addItem(juce::String(blockSize), itemID);
+            itemID++;
+        }
+
+        graphBlockSize.setSelectedId(5, juce::dontSendNotification);
+
+        graphBlockSize.onChange = [this] {
+            const int selectedID = graphBlockSize.getSelectedId();
+
+            if (selectedID > 0) {
+                const int blockSize = 4 * (1 << (selectedID - 1));
+                audioProcessor.setSequenceDisplayCount(blockSize);
+                repaint();
+            }
+        };
+    }
 }
 
 Sample_Hold_LFOAudioProcessorEditor::~Sample_Hold_LFOAudioProcessorEditor()
@@ -529,12 +564,12 @@ void Sample_Hold_LFOAudioProcessorEditor::resized()
     lockCeilingButton.setBounds(constraintArea.getX() + sliderWidth + sliderGap, lockY, lockSize, lockSize);
     ceilingSlider.setBounds(constraintArea.getX() + sliderWidth + sliderGap, sliderTop, sliderWidth, sliderHeight);
     
-    const int controlSize = scaled(50);
-    const int controlGap = controlSize / 3;
+    const int controlSize = scaled(50)*(1.5);
+    const int controlGap = controlSize / 4;
     const int controlY = scaled(10);
     const int controlStartX = scaled(20);
 
-    newStartingSeedButton.setBounds(controlStartX,controlY,controlSize,controlSize);
+    newStartingSeedButton.setBounds(controlStartX,controlY,controlSize,controlSize / (1.5));
 
     smoothingSlider.setBounds(newStartingSeedButton.getRight() + controlGap,controlY,controlSize,controlSize);
 
@@ -546,9 +581,11 @@ void Sample_Hold_LFOAudioProcessorEditor::resized()
     content.removeFromRight(scaled(8));
     axisSlider.setBounds(axisArea.getX() + scaled(4), content.getY() + scaled(8), scaled(20), content.getHeight() - scaled(16));
 
-    const int comboWidth = scaled(60);
+    const int comboWidth = scaled(60)*(1.55);
     const int comboHeight = scaled(30);
     const int comboMargin = scaled(12);
 
-    guiScale.setBounds(getWidth() - comboWidth - comboMargin,newStartingSeedButton.getY(),comboWidth,comboHeight);
+    guiScale.setBounds(getWidth() - comboWidth - comboMargin, newStartingSeedButton.getY(), comboWidth, comboHeight);
+    graphBlockSize.setBounds(guiScale.getX() - sliderGap - comboWidth, newStartingSeedButton.getY(), comboWidth, comboHeight);
+    
 }

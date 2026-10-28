@@ -80,7 +80,11 @@ const std::vector<int>& Sample_Hold_LFOAudioProcessor::getRawLfoValues() const
     const juce::ScopedLock lock(sequenceLock);
     return rawLfoValues;
 }
-
+void Sample_Hold_LFOAudioProcessor::setSequenceDisplayCount(int count) {
+    setDisplayCount(count);
+    sequenceProcessor(sequence, startPRNG, rawLfoValues);
+    setOutputConstraints(bipolarMode, lowerConstraint, upperConstraint);
+}
 void Sample_Hold_LFOAudioProcessor::setConstantRate(double newRate)
 {
     const juce::ScopedLock lock(sequenceLock);

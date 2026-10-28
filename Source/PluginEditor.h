@@ -72,6 +72,8 @@ private:
 
     juce::ComboBox guiScale;
 
+    juce::ComboBox graphBlockSize;
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Sample_Hold_LFOAudioProcessorEditor)
 };

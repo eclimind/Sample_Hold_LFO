@@ -27,6 +27,7 @@ public:
     const std::vector<int>& getRawLfoValues() const;
 
     void setOutputConstraints (bool bipolarMode, int lower, int upper);
+    void setSequenceDisplayCount(int count);
 
     bool isBipolarMode() const { return bipolarMode; }
     int getLowerConstraint() const { return lowerConstraint; }

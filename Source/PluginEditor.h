@@ -59,7 +59,7 @@ private:
     double ceilingValue = 100.0;
     double floorValue = 0.0;
 
-    juce::TextButton newStartingSeedButton {"Manual"};
+    juce::TextButton newStartingSeedButton {"RAND"};
 
     juce::Slider smoothingSlider;
     juce::Label smoothingLabel;
@@ -74,6 +74,12 @@ private:
 
     juce::ComboBox graphBlockSize;
 
+    static constexpr int GRID_ROWS = 120;
+    static constexpr int GRID_COLUMNS = 160;
+
+    juce::Rectangle<int> guiGrid[GRID_ROWS][GRID_COLUMNS];
+
+    juce::Rectangle<int> getGridArea(int column, int row, int columnSpan, int rowSpan) const;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Sample_Hold_LFOAudioProcessorEditor)
 };
